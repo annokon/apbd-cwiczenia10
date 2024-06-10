@@ -3,12 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace APBD.Models;
 
-[Table("medicaments")]
 public class Medicament
 {
-    [Key]
-    public int Id { get; set; }
-    [MaxLength(100)]
-    public string Name { get; set; } = string.Empty;
-    public ICollection<PrescriptionMedicament> PrescriptionMedicaments { get; set; } = new HashSet<PrescriptionMedicament>();
+    [Key] 
+    public int IdMedicament { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Type { get; set; }
+
+    public ICollection<PrescriptionMedicament> PrescriptionMedicaments { get; set; }
 }

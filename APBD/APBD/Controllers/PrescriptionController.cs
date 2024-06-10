@@ -30,20 +30,21 @@ public class PrescriptionController : ControllerBase
             return BadRequest("DueDate musi być większa lub równa Date.");
         }
 
-        var patient = await _context.Patients.SingleOrDefaultAsync(p =>
-            p.FirstName == request.Patient.FirstName && p.LastName == request.Patient.LastName);
+        var patient = await _context.Patients.SingleOrDefaultAsync(
+            p => p.IdPatient == request.Patient.IdPatient && p.FirstName == request.Patient.FirstName && 
+                 p.LastName == request.Patient.LastName);
         if (patient == null)
         {
-            patient = new Patient { FirstName = request.Patient.FirstName, LastName = request.Patient.LastName };
+            patient = new Patient { IdPatient = request.Patient.IdPatient, FirstName = request.Patient.FirstName, LastName = request.Patient.LastName };
             _context.Patients.Add(patient);
             await _context.SaveChangesAsync();
         }
 
         foreach (var med in request.Medicaments)
         {
-            if (!await _context.Medicaments.AnyAsync(m => m.Name == med.Name))
+            if (!await _context.Medicaments.AnyAsync(m => m.IdMedicament == med.IdMedicament))
             {
-                return NotFound($"Lek {med.Name} nie istnieje.");
+                return NotFound($"Lek {med.IdMedicament} nie istnieje.");
             }
         }
 
@@ -66,13 +67,13 @@ public class PrescriptionController : ControllerBase
 
         foreach (var med in request.Medicaments)
         {
-            var medicament = await _context.Medicaments.SingleOrDefaultAsync(m => m.Name == med.Name);
+            var medicament = await _context.Medicaments.SingleOrDefaultAsync(m => m.IdMedicament == med.IdMedicament);
             _context.PrescriptionMedicaments.Add(new PrescriptionMedicament
             {
-                PrescriptionId = prescription.Id,
-                MedicamentId = medicament.Id,
+                IdPrescription = prescription.IdPrescription,
+                IdMedicament = medicament.IdMedicament,
                 Dose = med.Dose,
-                Description = med.Description
+                Details = med.Description
             });
         }
 
@@ -89,7 +90,7 @@ public class PrescriptionController : ControllerBase
             .ThenInclude(pm => pm.Medicament)
             .Include(p => p.Prescriptions)
             .ThenInclude(p => p.Doctor)
-            .SingleOrDefaultAsync(p => p.Id == id);
+            .SingleOrDefaultAsync(p => p.IdPatient == id);
 
         if (patient == null)
         {
@@ -98,23 +99,23 @@ public class PrescriptionController : ControllerBase
 
         var result = new
         {
-            patient.Id,
+            patient.IdPatient,
             patient.FirstName,
             patient.LastName,
             Prescriptions = patient.Prescriptions.Select(p => new
             {
-                p.Id,
+                p.IdPrescription,
                 p.Date,
                 p.DueDate,
                 Medicaments = p.PrescriptionMedicaments.Select(pm => new
                 {
                     pm.Medicament.Name,
                     pm.Dose,
-                    pm.Description
+                    pm.Details
                 }),
                 Doctor = new
                 {
-                    p.Doctor.Id,
+                    p.Doctor.IdDoctor,
                     p.Doctor.FirstName,
                     p.Doctor.LastName
                 }
